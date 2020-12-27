@@ -253,6 +253,27 @@ class Search:
         search_results.update({'total_items': total_items['count']})
         return search_results
 
+    def search_variables_by_study(self, index, study_id, offset=0, size=10000):
+        """
+        Searches all variables belonging to a given study ID, and returns all results.
+        """
+        query = {
+            'terms': {
+                'study_id.keyword': study_id
+            }
+        }
+        body = json.dumps({'query': query})
+        total_items = self.es.count(body=body, index=index)
+        search_results = self.es.search(
+            index=index,
+            body=body,
+            filter_path=['hits.hits._id', 'hits.hits._type', 'hits.hits._source'],
+            from_=offset,
+            size=size
+        )
+        search_results.update({'total_items': total_items['count']})
+        return search_results
+
     def search_kg(self, index, unique_id, query, offset=0, size=None, fuzziness=1):
         """
         Query type is now 'query_string'.
@@ -844,9 +865,19 @@ class Search:
                 doc = {"doc" :{}}
                 doc['doc']['identifiers'] = identifiers
                 self.update_doc(index = index, doc = doc, doc_id = variable['id'])
-
-                
-
+    
+    def update_variable_study_metadata(self, studies, index):
+        '''
+        Given a dictionary of study objects,
+        this function updates all study-level metadata for variables
+        corresponding to the studies.
+        '''
+        for study in studies:
+            doc = {"doc" : study}
+            variables = self.search_variables_by_study(index, study)
+            for variable in variables:
+                self.update_doc(index=index, doc=doc, doc_id = variable['id'])
+                 
     def index_kg_answer(self, concept, index, curie_id, knowledge_graph, query_name, answer_node_ids):
         answer_synonyms = []
         for node in knowledge_graph.get('knowledge_graph', {}).get('nodes', []):
