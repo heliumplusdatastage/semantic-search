@@ -168,6 +168,47 @@ class TOPMedStudyAnnotator:
             tag['type'] = 'TOPMed'
 
         return variables, tags
+    
+    def load_gap_exchange (self, input_file : str) -> Dict:
+        """
+        This loads a dbGaP Gap exchange file, which contains additional study-level metadata.
+        """
+        # Intialize Fields
+        study_id = re.search(r'phs[0-9]{6}\.v[0-9]+\.p[0-9]+', input_file)
+        study = {}
+        studies = {}
+        study['study_types'] = []
+        study['diseases'] = []
+        study['consent_groups'] = []
+
+        # Parse XML document
+        tree = ET.parse(input_file)
+        root = tree.getroot()
+        
+        # Study Name and Description
+        study['name'] = next(root.iter('StudyNameEntrez')).text
+        study['description'] = next(root.iter('Description')).text
+
+        # Get Study Types
+        for st in root.iter('StudyType'):
+            study['study_types'].append(st.text)
+
+        # Get Diseases
+        for disease in root.iter('Disease'):
+            study['diseases'].append(disease.attrib['vocab_term'])
+
+        # Get Consents (There is probably a better way to do this)
+        for item in root.iter('ConsentGroup'):
+            consent = {}
+            consent['group_num'] = item.attrib['groupNum']
+            consent['short_name'] = item.attrib['shortName']
+            consent['long_name'] = item.attrib['longName']
+            study['consent_groups'].append(consent)
+
+
+        studies[study_id.group()] = study
+        return(studies)
+
 
     def normalize(self, http_session, curie, url, variable) -> None:
         """ Given an identifier (curie), use the Translator SRI node normalization service to
