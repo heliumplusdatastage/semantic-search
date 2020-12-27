@@ -134,7 +134,13 @@ class Search:
                     "study_description": {"type": "text"},
                     "study_types": {"type": "text", "fields": {"keyword": {"type": "keyword"}}},
                     "study_diseases": {"type": "text", "fields": {"keyword": {"type": "keyword"}}},
-                    "study_consent_groups": {"type": "text", "fields": {"keyword": {"type": "keyword"}}}
+                    "study_consent_groups": {
+                        "properties": {
+                            "group_num": {"type": "text", "fields": {"keyword": {"type": "keyword"}}},
+                            "long_name": {"type": "text"},
+                            "short_name": {"type": "text", "fields": {"keyword": {"type": "keyword"}}}
+                        }
+                    }
                 }
             }
         }
@@ -263,7 +269,7 @@ class Search:
         Searches all variables belonging to a given study ID, and returns all results.
         """
         query = {
-            'terms': {
+            'match': {
                 'study_id.keyword': study_id
             }
         }
@@ -878,10 +884,13 @@ class Search:
         corresponding to the studies.
         '''
         for study in studies:
-            doc = {"doc" : study}
-            variables = self.search_variables_by_study(index, study)
-            for variable in variables:
-                self.update_doc(index=index, doc=doc, doc_id = variable['id'])
+            doc = {"doc" : studies[study]}
+            variables = self.search_variables_by_study(index=index, study_id=study)
+            if not variables['total_items']:
+                logger.debug(f"No variables for {study}")
+            else:
+                for variable in variables:
+                    self.update_doc(index=index, doc=doc, doc_id = variable['id'])
                  
     def index_kg_answer(self, concept, index, curie_id, knowledge_graph, query_name, answer_node_ids):
         answer_synonyms = []
@@ -1079,7 +1088,7 @@ if __name__ == '__main__':
             concepts = annotator.annotate(tags)
         elif args.crawl_file.endswith(".xml"):
             # Parse variables from dbgap data dictionary xml file
-            if bool(re.match(".*GapExchange.*\.xml$"), args.crawl_file):
+            if bool(re.match(".*GapExchange.*\.xml$", args.crawl_file)):
                 studies = annotator.load_gap_exchange(args.crawl_file)
                 search.update_variable_study_metadata(studies, variables_index)    
                 sys.exit() # Exit after finished updating gap exchange
