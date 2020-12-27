@@ -129,7 +129,10 @@ class Search:
                     "dataset_description": {"type": "text"},
                     "study_id": {"type": "text", "fields": {"keyword": {"type": "keyword"}}},
                     "study_name": {"type": "text"},
-                    "study_description": {"type": "text"}
+                    "study_description": {"type": "text"},
+                    "study_types": {"type": "text", "fields": {"keyword": {"type": "keyword"}}},
+                    "study_diseases": {"type": "text", "fields": {"keyword": {"type": "keyword"}}},
+                    "study_consent_groups": {"type": "text", "fields": {"keyword": {"type": "keyword"}}}
                 }
             }
         }

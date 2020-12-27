@@ -178,16 +178,16 @@ class TOPMedStudyAnnotator:
         study = {}
         studies = {}
         study['study_types'] = []
-        study['diseases'] = []
-        study['consent_groups'] = []
+        study['study_diseases'] = []
+        study['study_consent_groups'] = []
 
         # Parse XML document
         tree = ET.parse(input_file)
         root = tree.getroot()
         
         # Study Name and Description
-        study['name'] = next(root.iter('StudyNameEntrez')).text
-        study['description'] = next(root.iter('Description')).text
+        study['study_name'] = next(root.iter('StudyNameEntrez')).text
+        study['study_description'] = next(root.iter('Description')).text
 
         # Get Study Types
         for st in root.iter('StudyType'):
@@ -195,7 +195,7 @@ class TOPMedStudyAnnotator:
 
         # Get Diseases
         for disease in root.iter('Disease'):
-            study['diseases'].append(disease.attrib['vocab_term'])
+            study['study_diseases'].append(disease.attrib['vocab_term'])
 
         # Get Consents (There is probably a better way to do this)
         for item in root.iter('ConsentGroup'):
@@ -203,7 +203,7 @@ class TOPMedStudyAnnotator:
             consent['group_num'] = item.attrib['groupNum']
             consent['short_name'] = item.attrib['shortName']
             consent['long_name'] = item.attrib['longName']
-            study['consent_groups'].append(consent)
+            study['study_consent_groups'].append(consent)
 
 
         studies[study_id.group()] = study
