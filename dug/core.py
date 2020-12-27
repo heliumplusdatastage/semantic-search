@@ -885,12 +885,13 @@ class Search:
         '''
         for study in studies:
             doc = {"doc" : studies[study]}
-            variables = self.search_variables_by_study(index=index, study_id=study)
-            if not variables['total_items']:
+            results = self.search_variables_by_study(index=index, study_id=study)
+            if not results['total_items']:
                 logger.debug(f"No variables for {study}")
             else:
+                variables = results['hits']['hits']
                 for variable in variables:
-                    self.update_doc(index=index, doc=doc, doc_id = variable['id'])
+                    self.update_doc(index=index, doc=doc, doc_id = variable['_id'])
                  
     def index_kg_answer(self, concept, index, curie_id, knowledge_graph, query_name, answer_node_ids):
         answer_synonyms = []
