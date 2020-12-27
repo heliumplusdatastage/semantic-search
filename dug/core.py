@@ -8,6 +8,8 @@ import json
 import requests
 import traceback
 import os
+import re
+import sys
 
 logger = logging.getLogger (__name__)
 
@@ -1077,6 +1079,10 @@ if __name__ == '__main__':
             concepts = annotator.annotate(tags)
         elif args.crawl_file.endswith(".xml"):
             # Parse variables from dbgap data dictionary xml file
+            if bool(re.match(".*GapExchange.*\.xml$"), args.crawl_file):
+                studies = annotator.load_gap_exchange(args.crawl_file)
+                search.update_variable_study_metadata(studies, variables_index)    
+                sys.exit() # Exit after finished updating gap exchange
             variables = annotator.load_data_dictionary(args.crawl_file)
             concepts = annotator.annotate(variables)
 
