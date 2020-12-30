@@ -873,6 +873,7 @@ class Search:
             else:
                 results = self.es.get(index, variable['id'])
                 identifiers = results['_source']['identifiers'] + variable['identifiers'] 
+                identifiers = list(set(identifiers))
                 doc = {"doc" :{}}
                 doc['doc']['identifiers'] = identifiers
                 self.update_doc(index = index, doc = doc, doc_id = variable['id'])
